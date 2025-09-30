@@ -39,27 +39,17 @@
   <nav>
     <button id="tabHome" class="active">Home</button>
     <button id="tabInventory">Inventory</button>
-    <button id="tabAdd" hidden>Add Part</button><!-- shown only when Add page active -->
   </nav>
 </header>
 
 <main>
-  <!-- Home -->
+  <!-- ===================== HOME ===================== -->
   <section id="home" class="grid" style="gap:16px">
     <div class="card">
       <div class="grid three">
-        <div>
-          <label>Year</label>
-          <select id="year"></select>
-        </div>
-        <div>
-          <label>Make</label>
-          <select id="make"></select>
-        </div>
-        <div>
-          <label>Model</label>
-          <select id="model"></select>
-        </div>
+        <div><label>Year</label><select id="year"></select></div>
+        <div><label>Make</label><select id="make"></select></div>
+        <div><label>Model</label><select id="model"></select></div>
       </div>
       <div class="row" style="margin-top:12px">
         <button id="searchBtn" class="btn primary">Search Parts</button>
@@ -80,8 +70,42 @@
     </div>
   </section>
 
-  <!-- Inventory -->
+  <!-- =================== INVENTORY ================== -->
   <section id="inventory" hidden class="grid" style="gap:16px">
+    <!-- Add Part form (top) -->
+    <div class="card">
+      <h3 style="margin:0 0 8px">Add Part</h3>
+      <div class="grid two">
+        <div><label>Title</label><input id="f_title" placeholder="e.g., Camry Radiator Support (Steel)" /></div>
+        <div><label>SKU (Part #)</label><input id="f_sku" class="mono" placeholder="e.g., TY-CAM-RADSPT-18" /></div>
+        <div><label>Price</label><input id="f_price" type="number" step="0.01" inputmode="decimal" placeholder="249.99" /></div>
+        <div><label>Condition</label>
+          <select id="f_condition">
+            <option>New (Other)</option><option>Refurbished</option>
+            <option>Used - Like New</option><option selected>Used - Good</option><option>Used - Fair</option>
+          </select>
+        </div>
+        <div><label>Category</label>
+          <select id="f_category">
+            <option>Body</option><option>Lighting</option><option>Interior</option>
+            <option>Engine</option><option>Suspension</option><option>Accessories</option>
+          </select>
+        </div>
+        <div><label>Make</label><input id="f_make" placeholder="Toyota" /></div>
+        <div><label>Model</label><input id="f_model" placeholder="Camry" /></div>
+        <div class="grid two">
+          <div><label>Year From</label><input id="f_yfrom" type="number" inputmode="numeric" placeholder="2018" /></div>
+          <div><label>Year To</label><input id="f_yto" type="number" inputmode="numeric" placeholder="2023" /></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="saveBtn" class="btn primary">Save</button>
+        <button id="clearBtn" class="btn">Clear</button>
+        <span class="muted right" id="validationMsg"></span>
+      </div>
+    </div>
+
+    <!-- Search/sort + import/export -->
     <div class="card">
       <div class="row" style="gap:8px">
         <input id="q" placeholder="Search by SKU, title, or category" />
@@ -89,90 +113,29 @@
           <option value="sku">Sort: SKU</option>
           <option value="title">Sort: Title</option>
         </select>
-        <button id="gotoAddBtn" class="btn ok">Add Part</button>
         <button id="exportBtn" class="btn">Export JSON</button>
         <input id="importFile" type="file" accept=".json" hidden />
         <button id="importBtn" class="btn">Import JSON</button>
       </div>
     </div>
 
+    <!-- Parts list -->
     <div class="card">
       <div id="invList" class="list"></div>
       <div id="invEmpty" class="empty" hidden>
         <div style="font-size:40px">📦</div>
-        <p>No inventory yet. Add your first part.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Add Part (separate page) -->
-  <section id="addPart" hidden class="grid" style="gap:16px">
-    <div class="card">
-      <h3 style="margin:0 0 8px">Add Part</h3>
-      <div class="grid two">
-        <div>
-          <label>Title</label>
-          <input id="f_title" placeholder="e.g., Camry Radiator Support (Steel)" />
-        </div>
-        <div>
-          <label>SKU (Part #)</label>
-          <input id="f_sku" class="mono" placeholder="e.g., TY-CAM-RADSPT-18" />
-        </div>
-        <div>
-          <label>Price</label>
-          <input id="f_price" type="number" step="0.01" inputmode="decimal" placeholder="249.99" />
-        </div>
-        <div>
-          <label>Condition</label>
-          <select id="f_condition">
-            <option>New (Other)</option>
-            <option>Refurbished</option>
-            <option>Used - Like New</option>
-            <option selected>Used - Good</option>
-            <option>Used - Fair</option>
-          </select>
-        </div>
-        <div>
-          <label>Category</label>
-          <select id="f_category">
-            <option>Body</option><option>Lighting</option><option>Interior</option>
-            <option>Engine</option><option>Suspension</option><option>Accessories</option>
-          </select>
-        </div>
-        <div>
-          <label>Make</label>
-          <input id="f_make" placeholder="Toyota" />
-        </div>
-        <div>
-          <label>Model</label>
-          <input id="f_model" placeholder="Camry" />
-        </div>
-        <div class="grid two">
-          <div>
-            <label>Year From</label>
-            <input id="f_yfrom" type="number" inputmode="numeric" placeholder="2018" />
-          </div>
-          <div>
-            <label>Year To</label>
-            <input id="f_yto" type="number" inputmode="numeric" placeholder="2023" />
-          </div>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <button id="saveBtn" class="btn primary">Save</button>
-        <button id="cancelAddBtn" class="btn">Cancel</button>
-        <span class="muted right" id="validationMsg"></span>
+        <p>No inventory yet. Add your first part above.</p>
       </div>
     </div>
   </section>
 </main>
 
 <div class="footer">
-  <span class="muted">Saves locally in your browser. Export JSON to back up or share.</span>
+  <span class="muted">Saves locally in your browser • v10</span>
 </div>
 
 <script>
-/* ---------- Data & Persistence ---------- */
+/* -------------------- Data & Persistence -------------------- */
 const LS_KEY = "route1_parts_v1";
 const DEFAULT_PARTS = [
   part("VW GTI Front Bumper Cover (Pure White)", 249.99, "Used - Good", "Body", "VW-GTI-BMP-2018-PW", [{make:"Volkswagen",model:"Golf/GTI",from:2015,to:2021}]),
@@ -193,7 +156,7 @@ function loadParts() {
 }
 function saveParts(parts) { localStorage.setItem(LS_KEY, JSON.stringify(parts)); }
 
-/* ---------- Year/Make/Model options ---------- */
+/* ---------------------- Options (Y/M/M) --------------------- */
 const YEARS = Array.from({length: 2035 - 1990 + 1}, (_,i) => 2035 - i);
 const MAKES = ["Acura","Audi","BMW","Chevrolet","Dodge","Ford","Honda","Hyundai","Jeep","Kia","Mazda","Mercedes-Benz","Nissan","Subaru","Tesla","Toyota","Volkswagen"];
 const MODELS_BY_MAKE = {
@@ -207,45 +170,41 @@ const MODELS_BY_MAKE = {
   "Toyota":["Corolla","Camry","RAV4","Tacoma"], "Volkswagen":["Jetta","Golf/GTI","Passat","Tiguan"]
 };
 
-/* ---------- State & helpers ---------- */
+/* ----------------------- State & Helpers -------------------- */
 let PARTS = loadParts();
 const $ = (sel) => document.querySelector(sel);
 function money(n){ return n.toLocaleString(undefined,{style:"currency",currency:"USD"}); }
 
-/* Simple router between sections */
+/* -------------------------- Router ------------------------- */
 const S = {
-  home: $("#home"),
-  inventory: $("#inventory"),
-  add: $("#addPart"),
-  tabHome: $("#tabHome"),
-  tabInventory: $("#tabInventory"),
-  tabAdd: $("#tabAdd"),
+  home: $("#home"), inventory: $("#inventory"),
+  tabHome: $("#tabHome"), tabInventory: $("#tabInventory")
 };
 function show(section){
-  S.home.hidden = section!=="home";
-  S.inventory.hidden = section!=="inventory";
-  S.add.hidden = section!=="add";
-  S.tabHome.classList.toggle("active", section==="home");
-  S.tabInventory.classList.toggle("active", section==="inventory");
-  S.tabAdd.hidden = section!=="add";           // show "Add Part" tab only on add page
-  S.tabAdd.classList.toggle("active", section==="add");
-  if(section==="inventory") renderInventory();
+  S.home.hidden = section !== "home";
+  S.inventory.hidden = section !== "inventory";
+  S.tabHome.classList.toggle("active", section === "home");
+  S.tabInventory.classList.toggle("active", section === "inventory");
+  if (section === "inventory") renderInventory();
 }
-
-/* Tabs */
 S.tabHome.onclick = () => show("home");
 S.tabInventory.onclick = () => show("inventory");
 
-/* Home selectors */
-const yearSel=$("#year"), makeSel=$("#make"), modelSel=$("#model"), results=$("#results"), matchCount=$("#matchCount"), noResults=$("#noResults");
+/* ------------------------ HOME logic ----------------------- */
+const yearSel=$("#year"), makeSel=$("#make"), modelSel=$("#model"),
+      results=$("#results"), matchCount=$("#matchCount"), noResults=$("#noResults");
+
 YEARS.forEach(y => yearSel.append(new Option(String(y), String(y))));
 MAKES.forEach(m => makeSel.append(new Option(m,m)));
 makeSel.onchange = () => fillModels(makeSel.value);
-function fillModels(make) { modelSel.innerHTML=""; (MODELS_BY_MAKE[make]||[]).forEach(md => modelSel.append(new Option(md,md))); }
-yearSel.value="2023"; makeSel.value="Toyota"; fillModels("Toyota"); modelSel.value="Camry";
+function fillModels(make) {
+  modelSel.innerHTML = "";
+  (MODELS_BY_MAKE[make] || []).forEach(md => modelSel.append(new Option(md, md)));
+}
+yearSel.value = "2023"; makeSel.value = "Toyota"; fillModels("Toyota"); modelSel.value = "Camry";
 
-/* Search */
 $("#searchBtn").onclick = renderResults;
+
 function fits(p, y, make, model) {
   return p.fitments?.some(f => f.make.toLowerCase()===make.toLowerCase()
     && f.model.toLowerCase()===model.toLowerCase()
@@ -257,7 +216,7 @@ function renderResults() {
   results.innerHTML = "";
   items.forEach(p => {
     const card = document.createElement("div");
-    card.className="part";
+    card.className = "part";
     card.innerHTML = `
       <div><strong>${p.title}</strong></div>
       <div class="row">
@@ -275,18 +234,55 @@ function renderResults() {
   noResults.hidden = items.length !== 0;
 }
 
-/* Inventory */
+/* ---------------------- INVENTORY logic -------------------- */
 const q=$("#q"), sortSel=$("#sort"), invList=$("#invList"), invEmpty=$("#invEmpty");
-q.oninput = renderInventory;
-sortSel.onchange = renderInventory;
-$("#importBtn").onclick = () => $("#importFile").click();
-$("#importFile").addEventListener("change", onImportFile);
-$("#exportBtn").onclick = exportJSON;
-$("#gotoAddBtn").onclick = () => { clearAddForm(); show("add"); $("#f_title").focus(); };
+$("#importBtn")?.addEventListener("click", () => $("#importFile").click());
+$("#importFile")?.addEventListener("change", onImportFile);
+$("#exportBtn")?.addEventListener("click", exportJSON);
+
+const f_title=$("#f_title"), f_sku=$("#f_sku"), f_price=$("#f_price");
+const f_condition=$("#f_condition"), f_category=$("#f_category");
+const f_make=$("#f_make"), f_model=$("#f_model");
+const f_yfrom=$("#f_yfrom"), f_yto=$("#f_yto");
+const validationMsg=$("#validationMsg");
+const saveBtn=$("#saveBtn"), clearBtn=$("#clearBtn");
+
+q?.addEventListener("input", renderInventory);
+sortSel?.addEventListener("change", renderInventory);
+saveBtn?.addEventListener("click", onSaveAdd);
+clearBtn?.addEventListener("click", clearAddForm);
+
+function clearAddForm(){
+  [f_title,f_sku,f_price,f_make,f_model,f_yfrom,f_yto].forEach(i => i.value="");
+  if (f_condition) f_condition.value="Used - Good";
+  if (f_category)  f_category.value="Body";
+  if (validationMsg) validationMsg.textContent="";
+}
+
+function onSaveAdd(){
+  const title = f_title.value.trim();
+  const sku = f_sku.value.trim();
+  const price = parseFloat(f_price.value);
+  const make = f_make.value.trim();
+  const model = f_model.value.trim();
+  const yf = parseInt(f_yfrom.value,10);
+  const yt = parseInt(f_yto.value,10);
+
+  if(!title || !sku || isNaN(price) || !make || !model || isNaN(yf) || isNaN(yt)){
+    if (validationMsg) validationMsg.textContent = "Please fill all required fields (Title, SKU, Price, Make, Model, Years).";
+    return;
+  }
+  const p = part(title, price, f_condition.value, f_category.value, sku, [{make, model, from: yf, to: yt}]);
+  PARTS.unshift(p);
+  saveParts(PARTS);
+  clearAddForm();
+  renderInventory();
+  renderResults();
+}
 
 function renderInventory() {
   let items = PARTS.slice();
-  const needle = q.value.trim().toLowerCase();
+  const needle = (q?.value || "").trim().toLowerCase();
   if (needle) {
     items = items.filter(p =>
       p.sku.toLowerCase().includes(needle) ||
@@ -294,11 +290,12 @@ function renderInventory() {
       p.category.toLowerCase().includes(needle)
     );
   }
-  items.sort((a,b) => sortSel.value==="sku"
+  const sortBySku = (sortSel?.value || "sku") === "sku";
+  items.sort((a,b) => sortBySku
     ? a.sku.localeCompare(b.sku, undefined, {numeric:true,sensitivity:"base"})
     : a.title.localeCompare(b.title, undefined, {sensitivity:"base"}));
 
-  invList.innerHTML = "";
+  if (invList) invList.innerHTML = "";
   items.forEach(p => {
     const row = document.createElement("div");
     row.className="part";
@@ -316,88 +313,18 @@ function renderInventory() {
       <div class="muted" style="font-size:12px">
         Fits: ${p.fitments.map(f => `${f.make} ${f.model} (${f.from}–${f.to})`).join("; ")}
       </div>`;
-    invList.append(row);
-    row.querySelector("button[data-id]").onclick = (e) => {
+    invList?.append(row);
+    row.querySelector("button[data-id]")?.addEventListener("click", (e) => {
       const id = e.currentTarget.getAttribute("data-id");
       PARTS = PARTS.filter(x => x.id !== id);
       saveParts(PARTS);
       renderInventory();
-    };
+    });
   });
-  invEmpty.hidden = items.length !== 0;
+  if (invEmpty) invEmpty.hidden = items.length !== 0;
 }
 
-/* Add Part page */
-const f_title=$("#f_title"), f_sku=$("#f_sku"), f_price=$("#f_price");
-const f_condition=$("#f_condition"), f_category=$("#f_category");
-const f_make=$("#f_make"), f_model=$("#f_model");
-const f_yfrom=$("#f_yfrom"), f_yto=$("#f_yto");
-const validationMsg=$("#validationMsg");
-$("#saveBtn").onclick = onSaveAdd;
-$("#cancelAddBtn").onclick = () => show("inventory");
-
-function clearAddForm(){
-  [f_title,f_sku,f_price,f_make,f_model,f_yfrom,f_yto].forEach(i => i.value="");
-  f_condition.value="Used - Good";
-  f_category.value="Body";
-  validationMsg.textContent="";
-}
-function onSaveAdd(){
-  const title = f_title.value.trim();
-  const sku = f_sku.value.trim();
-  const price = parseFloat(f_price.value);
-  const make = f_make.value.trim();
-  const model = f_model.value.trim();
-  const yf = parseInt(f_yfrom.value,10);
-  const yt = parseInt(f_yto.value,10);
-
-  if(!title || !sku || isNaN(price) || !make || !model || isNaN(yf) || isNaN(yt)){
-    validationMsg.textContent = "Please fill all required fields (Title, SKU, Price, Make, Model, Years).";
-    return;
-  }
-  const p = part(title, price, f_condition.value, f_category.value, sku, [{make, model, from: yf, to: yt}]);
-  PARTS.unshift(p);
-  saveParts(PARTS);
-  clearAddForm();
-  show("inventory");
-  renderInventory();
-  renderResults();
-}
-
-/* Export / Import */
-function exportJSON(){
-  const blob = new Blob([JSON.stringify(PARTS, null, 2)], {type: "application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "inventory.json"; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 500);
-}
-function onImportFile(e){
-  const file = e.target.files?.[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const arr = JSON.parse(reader.result);
-      if(!Array.isArray(arr)) throw new Error("Invalid JSON");
-      const valid = arr.every(x => x && x.title && x.sku && typeof x.price === "number");
-      if(!valid) throw new Error("Missing fields");
-      PARTS = arr.map(x => ({
-        id: x.id || crypto.randomUUID(),
-        title: x.title, price: x.price, condition: x.condition, category: x.category, sku: x.sku,
-        fitments: (x.fitments||[]).map(f => ({make:f.make, model:f.model, from:Number(f.from), to:Number(f.to)}))
-      }));
-      saveParts(PARTS);
-      renderInventory(); renderResults();
-      e.target.value = "";
-    }catch(err){
-      alert("Import failed: " + err.message);
-    }
-  };
-  reader.readAsText(file);
-}
-
-/* First render */
+/* ------------------------- First render -------------------- */
 renderResults();
 renderInventory();
 </script>
