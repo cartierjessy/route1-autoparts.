@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Route 1 Auto Parts</title>
 <style>
-  :root{--bg:#0b0c10;--card:#151821;--ink:#e7e9ee;--muted:#9aa3b2;--accent:#4f8cff;--ok:#2ecc71;--warn:#f39c12;--danger:#ff5a5f}
-  *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--ink)}
+  :root{--bg:#0b0c10;--card:#151821;--ink:#e7e9ee;--muted:#9aa3b2;--accent:#4f8cff;--ok:#2ecc71;--danger:#ff5a5f}
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink)}
   header{position:sticky;top:0;background:linear-gradient(180deg,rgba(11,12,16,.95),rgba(11,12,16,.8));backdrop-filter:saturate(140%) blur(8px);padding:12px 14px;border-bottom:1px solid #232634}
   header h1{margin:0;font-size:18px} header nav{display:flex;gap:8px;margin-top:8px}
   nav button{background:#1c2130;color:var(--ink);border:1px solid #262b3a;border-radius:10px;padding:8px 12px}
@@ -103,9 +103,9 @@
       </div>
     </div>
 
-    <!-- Add/Edit modal (lightweight) -->
+    <!-- Add Part modal -->
     <div id="modal" hidden style="position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);padding:16px">
-      <div class="card" style="max-width:720px;width:100%">
+      <div class="card" role="dialog" aria-modal="true" style="max-width:720px;width:100%">
         <h3 id="modalTitle" style="margin-top:0">Add Part</h3>
         <div class="grid two">
           <div>
@@ -191,12 +191,10 @@ function loadParts() {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) { localStorage.setItem(LS_KEY, JSON.stringify(DEFAULT_PARTS)); return DEFAULT_PARTS.slice(); }
     return JSON.parse(raw);
-  } catch (e) { console.warn("load failed", e); return DEFAULT_PARTS.slice(); }
+  } catch { return DEFAULT_PARTS.slice(); }
 }
 
-function saveParts(parts) {
-  localStorage.setItem(LS_KEY, JSON.stringify(parts));
-}
+function saveParts(parts) { localStorage.setItem(LS_KEY, JSON.stringify(parts)); }
 
 /* ---------- Year/Make/Model options ---------- */
 const YEARS = Array.from({length: 2035 - 1990 + 1}, (_,i) => 2035 - i); // 2035…1990
@@ -216,7 +214,6 @@ const MODELS_BY_MAKE = {
 let PARTS = loadParts();
 
 const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
 
 /* Tabs */
 const tabHome = $("#tabHome"), tabInventory = $("#tabInventory");
@@ -229,7 +226,7 @@ const yearSel = $("#year"), makeSel = $("#make"), modelSel = $("#model"), result
 
 YEARS.forEach(y => yearSel.append(new Option(String(y), String(y))));
 MAKES.forEach(m => makeSel.append(new Option(m,m)));
-makeSel.onchange = () => { fillModels(makeSel.value); };
+makeSel.onchange = () => fillModels(makeSel.value);
 function fillModels(make) {
   modelSel.innerHTML = "";
   (MODELS_BY_MAKE[make] || []).forEach(md => modelSel.append(new Option(md, md)));
@@ -237,7 +234,7 @@ function fillModels(make) {
 yearSel.value = "2023"; makeSel.value = "Toyota"; fillModels("Toyota"); modelSel.value = "Camry";
 
 /* Search */
-$("#searchBtn").onclick = () => renderResults();
+$("#searchBtn").onclick = renderResults;
 function fits(p, y, make, model) {
   return p.fitments?.some(f => f.make.toLowerCase()===make.toLowerCase()
     && f.model.toLowerCase()===model.toLowerCase()
@@ -271,8 +268,8 @@ function renderResults() {
 
 /* Inventory view */
 const q = $("#q"), sortSel = $("#sort"), invList = $("#invList"), invEmpty = $("#invEmpty");
-q.oninput = () => renderInventory();
-sortSel.onchange = () => renderInventory();
+q.oninput = renderInventory;
+sortSel.onchange = renderInventory;
 
 function renderInventory() {
   let items = PARTS.slice();
@@ -322,12 +319,17 @@ function renderInventory() {
 const modal = $("#modal"), addBtn = $("#addBtn"), cancelBtn = $("#cancelBtn"), saveBtn = $("#saveBtn"), modalTitle = $("#modalTitle"), msg = $("#validationMsg");
 const f_title = $("#f_title"), f_sku = $("#f_sku"), f_price = $("#f_price"), f_condition = $("#f_condition"), f_category = $("#f_category"), f_make=$("#f_make"), f_model=$("#f_model"), f_yfrom=$("#f_yfrom"), f_yto=$("#f_yto");
 
-addBtn.onclick = () => openAdd();
-$("#importBtn").onclick = () => $("#importFile").click();
-$("#importFile").addEventListener("change", onImportFile);
-$("#exportBtn").onclick = exportJSON;
+addBtn.onclick = openAdd;
+document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").addEventListener("change", onImportFile);
+document.getElementById("exportBtn").onclick = exportJSON;
 cancelBtn.onclick = closeModal;
 saveBtn.onclick = onSave;
+
+// Close when tapping outside the card
+modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+// Close with Esc
+document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && !modal.hidden) closeModal(); });
 
 function openAdd(){
   modalTitle.textContent = "Add Part";
@@ -354,13 +356,11 @@ function onSave(){
     return;
   }
 
-  const p = part(title, price, f_condition.value, f_category.value, sku, [
-    {make, model, from: yf, to: yt}
-  ]);
+  const p = part(title, price, f_condition.value, f_category.value, sku, [{make, model, from: yf, to: yt}]);
   PARTS.unshift(p);
   saveParts(PARTS);
 
-  closeModal();             // ✅ ensure modal disappears
+  closeModal();            // ✅ close modal after saving
   renderInventory();
   renderResults();
 }
@@ -381,10 +381,8 @@ function onImportFile(e){
     try{
       const arr = JSON.parse(reader.result);
       if(!Array.isArray(arr)) throw new Error("Invalid JSON");
-      // basic shape check
       const valid = arr.every(x => x && x.title && x.sku && typeof x.price === "number");
       if(!valid) throw new Error("Missing fields");
-      // ensure id and fitment shape
       PARTS = arr.map(x => ({
         id: x.id || crypto.randomUUID(),
         title: x.title, price: x.price, condition: x.condition, category: x.category, sku: x.sku,
