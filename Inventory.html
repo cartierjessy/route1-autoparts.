@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Route 1 Auto Parts - Inventory</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Route 1 Auto Parts</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="inventory.html" class="active">Inventory</a>
+  </nav>
+</header>
+
+<main class="grid" style="gap:16px">
+  <!-- Add Part form -->
+  <section class="card">
+    <h3>Add Part</h3>
+    <div class="grid two">
+      <div><label>Title</label><input id="f_title"></div>
+      <div><label>SKU</label><input id="f_sku"></div>
+      <div><label>Price</label><input id="f_price" type="number"></div>
+      <div><label>Condition</label><input id="f_condition"></div>
+      <div><label>Category</label><input id="f_category"></div>
+      <div><label>Make</label><input id="f_make"></div>
+      <div><label>Model</label><input id="f_model"></div>
+      <div><label>Year From</label><input id="f_yfrom"></div>
+      <div><label>Year To</label><input id="f_yto"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button id="saveBtn" class="btn primary">Save</button>
+      <button id="clearBtn" class="btn">Clear</button>
+    </div>
+  </section>
+
+  <!-- List -->
+  <section class="card">
+    <div class="row" style="gap:8px">
+      <input id="q" placeholder="Search...">
+      <select id="sort">
+        <option value="sku">Sort: SKU</option>
+        <option value="title">Sort: Title</option>
+      </select>
+      <button id="exportBtn" class="btn">Export</button>
+      <input id="importFile" type="file" hidden>
+      <button id="importBtn" class="btn">Import</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div id="invList" class="list"></div>
+    <div id="invEmpty" class="empty" hidden>
+      <p>No inventory yet.</p>
+    </div>
+  </section>
+</main>
+
+<script src="inventory.js"></script>
+</body>
+</html>
