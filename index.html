@@ -348,14 +348,19 @@ function onSave(){
   const model = f_model.value.trim();
   const yf = parseInt(f_yfrom.value,10);
   const yt = parseInt(f_yto.value,10);
+
   if (!title || !sku || isNaN(price) || !make || !model || isNaN(yf) || isNaN(yt)) {
     msg.textContent = "Please fill all required fields (Title, SKU, Price, Make, Model, Years).";
     return;
   }
-  const p = part(title, price, f_condition.value, f_category.value, sku, [{make, model, from: yf, to: yt}]);
+
+  const p = part(title, price, f_condition.value, f_category.value, sku, [
+    {make, model, from: yf, to: yt}
+  ]);
   PARTS.unshift(p);
   saveParts(PARTS);
-  closeModal();
+
+  closeModal();             // ✅ ensure modal disappears
   renderInventory();
   renderResults();
 }
