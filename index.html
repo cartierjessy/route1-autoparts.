@@ -17,7 +17,7 @@
   .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))} .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
   @media (max-width:800px){.grid.two,.grid.three{grid-template-columns:1fr}}
   label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-  input,select,textarea{width:100%;background:#0f1320;color:var(--ink);border:1px solid #262b3a;border-radius:10px;padding:10px}
+  input,select{width:100%;background:#0f1320;color:var(--ink);border:1px solid #262b3a;border-radius:10px;padding:10px}
   input[type="number"]{appearance:textfield} input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{appearance:none;margin:0}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .pill{font-size:12px;color:#fff;border-radius:999px;padding:3px 8px;background:#2c3244;border:1px solid #3a4258}
@@ -31,6 +31,7 @@
   .empty{opacity:.8;text-align:center;padding:40px}
   .footer{position:fixed;bottom:0;left:0;right:0;background:#0b0c10bd;backdrop-filter:blur(8px);border-top:1px solid #232634;padding:10px 14px;text-align:center}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  .banner{display:flex;gap:8px;align-items:center;background:#101423;border:1px dashed #2a3143;border-radius:10px;padding:8px 10px}
 </style>
 </head>
 <body>
@@ -43,7 +44,7 @@
 </header>
 
 <main>
-  <!-- ===================== HOME ===================== -->
+  <!-- ===================== HOME (Y/M/M only) ===================== -->
   <section id="home" class="grid" style="gap:16px">
     <div class="card">
       <div class="grid three">
@@ -53,25 +54,19 @@
       </div>
       <div class="row" style="margin-top:12px">
         <button id="searchBtn" class="btn primary">Search Parts</button>
-        <span class="pill">Choose year / make / model</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row" style="margin-bottom:8px">
-        <strong>Matching Parts</strong>
-        <span id="matchCount" class="pill right">0 found</span>
-      </div>
-      <div id="results" class="list"></div>
-      <div id="noResults" class="empty" hidden>
-        <div style="font-size:40px">🛠️</div>
-        <p>No parts found. Try another year/make/model.</p>
+        <span class="pill">Select year / make / model, then Search</span>
       </div>
     </div>
   </section>
 
-  <!-- =================== INVENTORY ================== -->
+  <!-- ================ INVENTORY (Add + All Parts) ================= -->
   <section id="inventory" hidden class="grid" style="gap:16px">
+    <!-- Vehicle filter banner (appears if you searched from Home) -->
+    <div id="vehBanner" class="banner" hidden>
+      <span id="vehLabel" class="muted">Filtering by vehicle…</span>
+      <button id="clearVeh" class="btn">Clear Vehicle Filter</button>
+    </div>
+
     <!-- Add Part form (top) -->
     <div class="card">
       <h3 style="margin:0 0 8px">Add Part</h3>
@@ -105,7 +100,7 @@
       </div>
     </div>
 
-    <!-- Search/sort + import/export -->
+    <!-- Search/sort + import/export for the list -->
     <div class="card">
       <div class="row" style="gap:8px">
         <input id="q" placeholder="Search by SKU, title, or category" />
@@ -131,7 +126,7 @@
 </main>
 
 <div class="footer">
-  <span class="muted">Saves locally in your browser • v10</span>
+  <span class="muted">Saves locally in your browser • v11</span>
 </div>
 
 <script>
@@ -172,28 +167,34 @@ const MODELS_BY_MAKE = {
 
 /* ----------------------- State & Helpers -------------------- */
 let PARTS = loadParts();
+let VEH_FILTER = null; // {year, make, model} when set from Home search
+
 const $ = (sel) => document.querySelector(sel);
 function money(n){ return n.toLocaleString(undefined,{style:"currency",currency:"USD"}); }
 
 /* -------------------------- Router ------------------------- */
 const S = {
   home: $("#home"), inventory: $("#inventory"),
-  tabHome: $("#tabHome"), tabInventory: $("#tabInventory")
+  tabHome: $("#tabHome"), tabInventory: $("#tabInventory"),
+  vehBanner: $("#vehBanner"), vehLabel: $("#vehLabel"), clearVeh: $("#clearVeh")
 };
 function show(section){
   S.home.hidden = section !== "home";
   S.inventory.hidden = section !== "inventory";
   S.tabHome.classList.toggle("active", section === "home");
   S.tabInventory.classList.toggle("active", section === "inventory");
-  if (section === "inventory") renderInventory();
+  if (section === "inventory") {
+    updateVehBanner();
+    renderInventory();
+    // optional: scroll to the list
+    setTimeout(()=>document.getElementById("invList")?.scrollIntoView({behavior:"smooth", block:"start"}), 0);
+  }
 }
 S.tabHome.onclick = () => show("home");
 S.tabInventory.onclick = () => show("inventory");
 
 /* ------------------------ HOME logic ----------------------- */
-const yearSel=$("#year"), makeSel=$("#make"), modelSel=$("#model"),
-      results=$("#results"), matchCount=$("#matchCount"), noResults=$("#noResults");
-
+const yearSel=$("#year"), makeSel=$("#make"), modelSel=$("#model");
 YEARS.forEach(y => yearSel.append(new Option(String(y), String(y))));
 MAKES.forEach(m => makeSel.append(new Option(m,m)));
 makeSel.onchange = () => fillModels(makeSel.value);
@@ -203,36 +204,25 @@ function fillModels(make) {
 }
 yearSel.value = "2023"; makeSel.value = "Toyota"; fillModels("Toyota"); modelSel.value = "Camry";
 
-$("#searchBtn").onclick = renderResults;
+$("#searchBtn").onclick = () => {
+  VEH_FILTER = { year: Number(yearSel.value), make: makeSel.value, model: modelSel.value };
+  show("inventory"); // jump to inventory with the filter applied
+};
 
-function fits(p, y, make, model) {
+function fitsVehicle(p, y, make, model) {
   return p.fitments?.some(f => f.make.toLowerCase()===make.toLowerCase()
     && f.model.toLowerCase()===model.toLowerCase()
     && Number(y) >= Number(f.from) && Number(y) <= Number(f.to));
 }
-function renderResults() {
-  const y = Number(yearSel.value), mk = makeSel.value, md = modelSel.value;
-  const items = PARTS.filter(p => fits(p, y, mk, md));
-  results.innerHTML = "";
-  items.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "part";
-    card.innerHTML = `
-      <div><strong>${p.title}</strong></div>
-      <div class="row">
-        <span class="pill mono">SKU: ${p.sku}</span>
-        <span class="pill">${p.category}</span>
-        <span class="pill">${p.condition}</span>
-        <span class="right">${money(p.price)}</span>
-      </div>
-      <div class="muted" style="font-size:12px">
-        Fits: ${p.fitments.map(f => `${f.make} ${f.model} (${f.from}–${f.to})`).join("; ")}
-      </div>`;
-    results.append(card);
-  });
-  matchCount.textContent = `${items.length} found`;
-  noResults.hidden = items.length !== 0;
+function updateVehBanner(){
+  if (VEH_FILTER) {
+    S.vehBanner.hidden = false;
+    S.vehLabel.textContent = `Filtering by ${VEH_FILTER.year} ${VEH_FILTER.make} ${VEH_FILTER.model}`;
+  } else {
+    S.vehBanner.hidden = true;
+  }
 }
+S.clearVeh.onclick = () => { VEH_FILTER = null; updateVehBanner(); renderInventory(); };
 
 /* ---------------------- INVENTORY logic -------------------- */
 const q=$("#q"), sortSel=$("#sort"), invList=$("#invList"), invEmpty=$("#invEmpty");
@@ -277,11 +267,16 @@ function onSaveAdd(){
   saveParts(PARTS);
   clearAddForm();
   renderInventory();
-  renderResults();
 }
 
+/* Render the list (applies VEH_FILTER first, then text search, then sort) */
 function renderInventory() {
   let items = PARTS.slice();
+
+  if (VEH_FILTER) {
+    items = items.filter(p => fitsVehicle(p, VEH_FILTER.year, VEH_FILTER.make, VEH_FILTER.model));
+  }
+
   const needle = (q?.value || "").trim().toLowerCase();
   if (needle) {
     items = items.filter(p =>
@@ -290,6 +285,7 @@ function renderInventory() {
       p.category.toLowerCase().includes(needle)
     );
   }
+
   const sortBySku = (sortSel?.value || "sku") === "sku";
   items.sort((a,b) => sortBySku
     ? a.sku.localeCompare(b.sku, undefined, {numeric:true,sensitivity:"base"})
@@ -324,9 +320,41 @@ function renderInventory() {
   if (invEmpty) invEmpty.hidden = items.length !== 0;
 }
 
+/* --------- Export / Import (backup & restore JSON) --------- */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(PARTS, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "inventory.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 500);
+}
+function onImportFile(e){
+  const file = e.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const arr = JSON.parse(reader.result);
+      if(!Array.isArray(arr)) throw new Error("Invalid JSON");
+      const valid = arr.every(x => x && x.title && x.sku && typeof x.price === "number");
+      if(!valid) throw new Error("Missing fields");
+      PARTS = arr.map(x => ({
+        id: x.id || crypto.randomUUID(),
+        title: x.title, price: x.price, condition: x.condition, category: x.category, sku: x.sku,
+        fitments: (x.fitments||[]).map(f => ({make:f.make, model:f.model, from:Number(f.from), to:Number(f.to)}))
+      }));
+      saveParts(PARTS);
+      renderInventory();
+    }catch(err){
+      alert("Import failed: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
 /* ------------------------- First render -------------------- */
-renderResults();
 renderInventory();
 </script>
 </body>
 </html>
+
